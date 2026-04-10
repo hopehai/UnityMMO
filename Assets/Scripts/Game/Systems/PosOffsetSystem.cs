@@ -7,7 +7,7 @@ using UnityMMO;
 using UnityMMO.Component;
 
 [DisableAutoCreation]
-public class ResetPosOffsetSystem : BaseComponentSystem
+public partial class ResetPosOffsetSystem : BaseComponentSystem
 {
     public ResetPosOffsetSystem(GameWorld world) : base(world) {}
 

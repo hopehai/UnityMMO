@@ -27,7 +27,7 @@ public struct TimelineSpawnRequest : IComponentData
 
 
 [DisableAutoCreation]
-public class TimelineSpawnSystem : BaseComponentSystem
+public partial class TimelineSpawnSystem : BaseComponentSystem
 {
     public TimelineSpawnSystem(GameWorld world) : base(world) {}
     // ComponentGroup RequestGroup;
@@ -39,7 +39,7 @@ public class TimelineSpawnSystem : BaseComponentSystem
 
     protected override void OnUpdate()
     {
-        float dt = Time.deltaTime;
+        float dt = SystemAPI.Time.DeltaTime;
         var dic = TimelineManager.GetInstance().GetTimelineDic();
         foreach (var item in dic)
         {

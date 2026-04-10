@@ -7,7 +7,7 @@ using UnityMMO;
 using UnityMMO.Component;
 
 [DisableAutoCreation]
-public class LocomotionStateSys : BaseComponentSystem
+public partial class LocomotionStateSys : BaseComponentSystem
 {
     public LocomotionStateSys(GameWorld world) : base(world) {}
 
@@ -22,11 +22,10 @@ public class LocomotionStateSys : BaseComponentSystem
     protected override void OnUpdate()
     {
         var locoStates = group.ToComponentDataArray<LocomotionState>(Allocator.TempJob);
-        var stacks = group.ToComponentArray<LocomotionStateStack>();
         var entities = group.ToEntityArray(Allocator.TempJob);
         for (int i=0; i<entities.Length; i++)
         {
-            UpdateState(entities[i], locoStates[i], stacks[i]);
+            UpdateState(entities[i], locoStates[i], EntityManager.GetComponentObject<LocomotionStateStack>(entities[i]));
         }
         locoStates.Dispose();
         entities.Dispose();

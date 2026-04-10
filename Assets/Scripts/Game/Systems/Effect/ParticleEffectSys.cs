@@ -32,7 +32,7 @@ namespace UnityMMO
     }
 
     [DisableAutoCreation]
-    class ParticleEffectSys : BaseComponentSystem
+    partial class ParticleEffectSys : BaseComponentSystem
     {
         EntityQuery group;
         
@@ -46,13 +46,14 @@ namespace UnityMMO
 
         protected override void OnUpdate()
         {
-            var effects = group.ToComponentArray<ParticleEffects>();
+            var entityArray = group.ToEntityArray(Allocator.TempJob);
             var looksInfos = group.ToComponentDataArray<LooksInfo>(Allocator.TempJob);
-            for (var i = 0; i < effects.Length; i++)
+            for (var i = 0; i < entityArray.Length; i++)
             {
-                HandleEffect(effects[i], looksInfos[i]);
+                HandleEffect(EntityManager.GetComponentObject<ParticleEffects>(entityArray[i]), looksInfos[i]);
             }
             looksInfos.Dispose();
+            entityArray.Dispose();
         }
 
         void HandleEffect(ParticleEffects effect, LooksInfo looks)

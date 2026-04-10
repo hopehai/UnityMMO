@@ -119,8 +119,7 @@ public static class XLuaGenConfig
     public static List<Type> LuaCallCSharpEntities = new List<Type>() {
         typeof(Unity.Entities.World),
         typeof(Unity.Entities.Entity),
-        typeof(Unity.Entities.GameObjectEntity),
-        typeof(Unity.Entities.EntityManagerExtensions),
+        typeof(GameObjectEntity),
         typeof(Unity.Entities.EntityManager),
         typeof(Unity.Entities.EntityManager.EntityManagerDebug),
     };

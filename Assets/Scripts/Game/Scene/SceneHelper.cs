@@ -35,7 +35,7 @@ public class SceneHelper
             var uid = hit.collider.GetComponentInParent<UIDProxy>();
             if (uid != null)
             {
-                result.entity = SceneMgr.Instance.GetSceneObject(uid.Value.Value);
+                result.entity = SceneMgr.Instance.GetSceneObject(uid.Value);
             }
         }
         return result;

@@ -1,4 +1,5 @@
 
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityMMO.Component;
@@ -6,7 +7,7 @@ using UnityMMO.Component;
 namespace UnityMMO
 {    
 [DisableAutoCreation]
-class HandleMovementQueries : BaseComponentSystem
+partial class HandleMovementQueries : BaseComponentSystem
 {
     EntityQuery Group;
 	
@@ -20,12 +21,10 @@ class HandleMovementQueries : BaseComponentSystem
 
     protected override void OnUpdate()
     {
-        // Profiler.BeginSample("HandleMovementQueries");
-        var queryArray = Group.ToComponentArray<MoveQuery>();
-        // Debug.Log("queryArray.Length : "+queryArray.Length);
-        for (var i = 0; i < queryArray.Length; i++)
+        var entityArray = Group.ToEntityArray(Allocator.Temp);
+        for (var i = 0; i < entityArray.Length; i++)
         {
-            var query = queryArray[i];
+            var query = EntityManager.GetComponentObject<MoveQuery>(entityArray[i]);
             if (!query.IsAutoFinding)
             {
                 var charController = query.charController;
@@ -67,6 +66,7 @@ class HandleMovementQueries : BaseComponentSystem
                 }
             }
         }
+        entityArray.Dispose();
         // Profiler.EndSample();
     }
 }

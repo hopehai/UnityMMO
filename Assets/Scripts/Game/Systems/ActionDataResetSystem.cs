@@ -7,7 +7,7 @@ using UnityMMO;
 using UnityMMO.Component;
 
 [DisableAutoCreation]
-public class ActionDataResetSystem : BaseComponentSystem
+public partial class ActionDataResetSystem : BaseComponentSystem
 {
     public ActionDataResetSystem(GameWorld world) : base(world) {}
 

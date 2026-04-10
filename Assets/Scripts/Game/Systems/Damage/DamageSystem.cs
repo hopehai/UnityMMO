@@ -6,7 +6,7 @@ using UnityMMO;
 using UnityMMO.Component;
 
 [DisableAutoCreation]
-public class HandleDamage : BaseComponentSystem
+public partial class HandleDamage : BaseComponentSystem
 {
     private EntityQuery Group;
     

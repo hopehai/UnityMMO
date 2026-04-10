@@ -51,7 +51,7 @@ public struct RoleLooksNetRequest : IComponentData
 }
 
 [DisableAutoCreation]
-public class HandleRoleLooksNetRequest : BaseComponentSystem
+public partial class HandleRoleLooksNetRequest : BaseComponentSystem
 {
     EntityQuery RequestGroup;
     public HandleRoleLooksNetRequest(GameWorld world) : base(world)
@@ -78,11 +78,14 @@ public class HandleRoleLooksNetRequest : BaseComponentSystem
         
         // Copy requests as spawning will invalidate Group
         var requests = new RoleLooksNetRequest[requestArray.Length];
+        var ecb = new EntityCommandBuffer(Allocator.Temp);
         for (var i = 0; i < requestArray.Length; i++)
         {
             requests[i] = requestArray[i];
-            PostUpdateCommands.DestroyEntity(requestEntityArray[i]);
+            ecb.DestroyEntity(requestEntityArray[i]);
         }
+        ecb.Playback(EntityManager);
+        ecb.Dispose();
 
         for(var i = 0; i < requests.Length; i++)
         {
@@ -139,7 +142,7 @@ public class HandleRoleLooksNetRequest : BaseComponentSystem
 
 //当有玩家离主角较近时，且未加载过模型的话就给它加个RoleLooks
 [DisableAutoCreation]
-public class HandleRoleLooks : BaseComponentSystem
+public partial class HandleRoleLooks : BaseComponentSystem
 {
     EntityQuery RoleGroup;
     public HandleRoleLooks(GameWorld world) : base(world)
@@ -161,6 +164,7 @@ public class HandleRoleLooks : BaseComponentSystem
         float3 mainRolePos = float3.zero;
         if (mainRoleGOE!=null)
             mainRolePos = m_world.GetEntityManager().GetComponentObject<Transform>(mainRoleGOE.Entity).localPosition;
+        var ecb = new EntityCommandBuffer(Allocator.Temp);
         for (int i=0; i<looksInfoArray.Length; i++)
         {
             var uid = uidArray[i];
@@ -186,18 +190,20 @@ public class HandleRoleLooks : BaseComponentSystem
                 looksInfo.CurState = LooksInfo.State.Loading;
                 // looksInfoArray[i] = looksInfo;
                 EntityManager.SetComponentData<LooksInfo>(entities[i], looksInfo);
-                RoleLooksNetRequest.Create(PostUpdateCommands, uid.Value, entity);
+                RoleLooksNetRequest.Create(ecb, uid.Value, entity);
             }
         }
         entities.Dispose();
         looksInfoArray.Dispose();
         uidArray.Dispose();
+        ecb.Playback(EntityManager);
+        ecb.Dispose();
     }
 }
 
 //当存在RoleLooksSpawnRequest组件时就给它加载一个RoleLooks外观
 [DisableAutoCreation]
-public class HandleRoleLooksSpawnRequests : BaseComponentSystem
+public partial class HandleRoleLooksSpawnRequests : BaseComponentSystem
 {
     EntityQuery SpawnGroup;
 
@@ -226,11 +232,14 @@ public class HandleRoleLooksSpawnRequests : BaseComponentSystem
         
         // Copy requests as spawning will invalidate Group
         var spawnRequests = new RoleLooksSpawnRequest[requestArray.Length];
+        var ecb = new EntityCommandBuffer(Allocator.Temp);
         for (var i = 0; i < requestArray.Length; i++)
         {
             spawnRequests[i] = requestArray[i];
-            PostUpdateCommands.DestroyEntity(requestEntityArray[i]);
+            ecb.DestroyEntity(requestEntityArray[i]);
         }
+        ecb.Playback(EntityManager);
+        ecb.Dispose();
 
         for(var i =0;i<spawnRequests.Length;i++)
         {
@@ -284,7 +293,7 @@ public class HandleRoleLooksSpawnRequests : BaseComponentSystem
 }
 
 [DisableAutoCreation]
-public class HandleLooksFollowLogicTransform : BaseComponentSystem
+public partial class HandleLooksFollowLogicTransform : BaseComponentSystem
 {
     EntityQuery Group;
 
@@ -295,14 +304,13 @@ public class HandleLooksFollowLogicTransform : BaseComponentSystem
     {
         Debug.Log("on OnCreate role looks system");
         base.OnCreate();
-        Group = GetEntityQuery(typeof(LooksInfo), typeof(Translation), typeof(Rotation));
+        Group = GetEntityQuery(typeof(LooksInfo), typeof(LocalTransform));
     }
 
     protected override void OnUpdate()
     {
         var states = Group.ToComponentDataArray<LooksInfo>(Allocator.TempJob);
-        var pos = Group.ToComponentDataArray<Translation>(Allocator.TempJob);
-        var rotations = Group.ToComponentDataArray<Rotation>(Allocator.TempJob);
+        var transforms = Group.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
         for (int i = 0; i < states.Length; i++)
         {
             var looksEntity = states[i].LooksEntity;
@@ -311,13 +319,12 @@ public class HandleLooksFollowLogicTransform : BaseComponentSystem
                 var transform = EntityManager.GetComponentObject<Transform>(looksEntity);
                 if (transform != null)
                 {
-                    transform.localPosition = pos[i].Value;
-                    transform.rotation = rotations[i].Value;
+                    transform.localPosition = transforms[i].Position;
+                    transform.rotation = transforms[i].Rotation;
                 }
             }
         }
         states.Dispose();
-        pos.Dispose();
-        rotations.Dispose();
+        transforms.Dispose();
     }
 }

@@ -7,7 +7,7 @@ using UnityMMO;
 using UnityMMO.Component;
 
 [DisableAutoCreation]
-public class UpdateAnimatorSystem : BaseComponentSystem
+public partial class UpdateAnimatorSystem : BaseComponentSystem
 {
     public UpdateAnimatorSystem(GameWorld world) : base(world) {}
 

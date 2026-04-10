@@ -43,7 +43,7 @@ public class MonsterMgr
         // Debug.Log("pos : "+pos.x+" "+pos.y+" "+pos.z);
         monsterGameOE.transform.localPosition = pos;
         Entity monster = monsterGameOE.Entity;
-        monsterGameOE.GetComponent<UIDProxy>().Value = new UID{Value=uid};
+        monsterGameOE.GetComponent<UIDProxy>().Value = uid;
         InitMonster(monsterGameOE, uid, typeID, pos, targetPos, curHp, maxHp);
         return monster;
 	}

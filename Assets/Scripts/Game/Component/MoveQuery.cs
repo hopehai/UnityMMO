@@ -67,7 +67,7 @@ public class MoveQuery : MonoBehaviour
         go.layer = gameObject.layer;
 
         var uid = go.GetComponent<UIDProxy>();
-        uid.Value = ownerGOE.EntityManager.GetComponentData<UID>(ownerGOE.Entity);
+        uid.Value = ownerGOE.EntityManager.GetComponentData<UID>(ownerGOE.Entity).Value;
         isAutoFinding = false;
         if (isNeedNavAgent)
         {
@@ -80,7 +80,7 @@ public class MoveQuery : MonoBehaviour
     public void ChangeUID(long uid)
     {
         var uidProxy = queryObj.GetComponent<UIDProxy>();
-        uidProxy.Value = new UID{Value=uid};
+        uidProxy.Value = uid;
     }
 
     public void UpdateNavAgent()

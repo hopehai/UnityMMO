@@ -21,6 +21,6 @@ public class SystemCollection
     public void Shutdown(World world)
     {
         foreach (var system in systems)
-            world.DestroySystem(system);
+            world.DestroySystemManaged(system);
     }
 }

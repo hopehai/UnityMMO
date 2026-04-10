@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Sprites;
@@ -7,7 +7,8 @@ using UnityEngine.Sprites;
 public class CircleImage : BaseImage {
 
 	// Use this for initialization
-	void Awake () {
+	protected override void Awake () {
+        base.Awake();
         innerVertices = new List<Vector3>();
         outterVertices = new List<Vector3>();
 	}

@@ -6,7 +6,7 @@ using UnityMMO;
 using UnityMMO.Component;
 
 [DisableAutoCreation]
-public class GroundTestSystem : BaseComponentSystem
+public partial class GroundTestSystem : BaseComponentSystem
 {
     EntityQuery Group;
 
@@ -29,20 +29,19 @@ public class GroundTestSystem : BaseComponentSystem
 
     protected override void OnUpdate()
     {        
-        var posArray = Group.ToComponentArray<Transform>();
-        var groundArray = Group.ToComponentDataArray<GroundInfo>(Allocator.TempJob);
+        var entityArray = Group.ToEntityArray(Allocator.Temp);
+        var groundArray = Group.ToComponentDataArray<GroundInfo>(Allocator.Temp);
         var startOffset = 1f;
         var distance = 3f;
 
-        var rayCommands = new NativeArray<RaycastCommand>(posArray.Length, Allocator.TempJob);
-        var rayResults = new NativeArray<RaycastHit>(posArray.Length, Allocator.TempJob);
+        var rayCommands = new NativeArray<RaycastCommand>(entityArray.Length, Allocator.TempJob);
+        var rayResults = new NativeArray<RaycastHit>(entityArray.Length, Allocator.TempJob);
 
-        for (var i = 0; i < posArray.Length; i++)
+        for (var i = 0; i < entityArray.Length; i++)
         {
-            // var charPredictedState = charPredictedStateArray[i];
-            Vector3 curPos = posArray[i].localPosition;
+            Vector3 curPos = EntityManager.GetComponentObject<Transform>(entityArray[i]).localPosition;
             var origin = curPos + Vector3.up * startOffset;
-            rayCommands[i] = new RaycastCommand(origin, Vector3.down, distance, m_mask);
+            rayCommands[i] = new RaycastCommand(origin, Vector3.down, new QueryParameters(m_mask, false, QueryTriggerInteraction.UseGlobal, false), distance);
         }
 
         var handle = RaycastCommand.ScheduleBatch(rayCommands, rayResults, 10);
@@ -62,6 +61,7 @@ public class GroundTestSystem : BaseComponentSystem
         rayCommands.Dispose();
         rayResults.Dispose();
         groundArray.Dispose();
+        entityArray.Dispose();
     }
     
     readonly int m_defaultLayer;

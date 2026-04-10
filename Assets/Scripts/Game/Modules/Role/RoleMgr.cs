@@ -113,7 +113,7 @@ public class RoleMgr
     private void InitRole(GameObjectEntity roleGOE, long uid, long typeID, Vector3 pos, Vector3 targetPos, float curHp, float maxHp, bool isNeedNavAgent=false)
     {
         Entity role = roleGOE.Entity;
-        roleGOE.GetComponent<UIDProxy>().Value = new UID{Value=uid};
+        roleGOE.GetComponent<UIDProxy>().Value = uid;
         EntityManager.AddComponentData(role, new TargetPosition {Value = targetPos});
         var locoStateData = new LocomotionState {LocoState = curHp>0?LocomotionState.State.Idle:LocomotionState.State.Dead};
         //It should have been dead for a long time

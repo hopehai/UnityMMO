@@ -9,7 +9,7 @@ using UnityMMO.Component;
 namespace UnityMMO
 {
 [DisableAutoCreation]
-public class NameboardSystem : BaseComponentSystem
+public partial class NameboardSystem : BaseComponentSystem
 {
     EntityQuery Group;
     Transform nameboardCanvas;
@@ -29,13 +29,11 @@ public class NameboardSystem : BaseComponentSystem
         if (Camera.main == null)
             return;
         var entityArray = Group.ToEntityArray(Allocator.TempJob);
-        var nameboardArray = Group.ToComponentArray<NameboardData>();
-        var posArray = Group.ToComponentArray<Transform>();
-        for (var i = 0; i < nameboardArray.Length; i++)
+        for (var i = 0; i < entityArray.Length; i++)
         {
-            var nameboard = nameboardArray[i];
             var entity = entityArray[i];
-            UpdateNameboard(posArray[i], nameboard, entity);
+            var nameboard = EntityManager.GetComponentObject<NameboardData>(entity);
+            UpdateNameboard(EntityManager.GetComponentObject<Transform>(entity), nameboard, entity);
         }
         entityArray.Dispose();
     }

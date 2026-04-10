@@ -12,7 +12,7 @@ using UnityMMO.Component;
 namespace UnityMMO
 {
     [DisableAutoCreation]
-    public class PlayerInputSystem : ComponentSystem
+    public partial class PlayerInputSystem : SystemBase
     {
         public PlayerInputSystem()
         {
@@ -25,20 +25,20 @@ namespace UnityMMO
             group = GetEntityQuery(typeof(UserCommand), typeof(TargetPosition));
         }
 
-        protected override void OnUpdate()
+    protected override void OnUpdate()
+    {
+        // Debug.Log("on OnUpdate player input system");
+        float dt = SystemAPI.Time.DeltaTime;
+        var userCommandArray = group.ToComponentDataArray<UserCommand>(Allocator.Temp);
+        var targetPosArray = group.ToComponentDataArray<TargetPosition>(Allocator.Temp);
+        if (userCommandArray.Length > 0)
         {
-            // Debug.Log("on OnUpdate player input system");
-            float dt = Time.deltaTime;
-            var userCommandArray = group.ToComponentDataArray<UserCommand>(Allocator.TempJob);
-            var targetPosArray = group.ToComponentDataArray<TargetPosition>(Allocator.TempJob);
-            if (userCommandArray.Length > 0)
-            {
-                var userCommand = userCommandArray[0];
-                SampleInput(ref userCommand, dt);
-            }
-            userCommandArray.Dispose();
-            targetPosArray.Dispose();
+            var userCommand = userCommandArray[0];
+            SampleInput(ref userCommand, dt);
         }
+        userCommandArray.Dispose();
+        targetPosArray.Dispose();
+    }
 
         public void SampleInput(ref UserCommand command, float deltaTime)
         {

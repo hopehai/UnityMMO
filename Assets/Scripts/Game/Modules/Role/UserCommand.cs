@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.Networking;
 
 [System.Serializable]
 public struct UserCommand : Unity.Entities.IComponentData

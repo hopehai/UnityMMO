@@ -7,7 +7,7 @@ using UnityMMO;
 using UnityMMO.Component;
 
 [DisableAutoCreation]
-public class MovementUpdateSystem : BaseComponentSystem
+public partial class MovementUpdateSystem : BaseComponentSystem
 {
     public MovementUpdateSystem(GameWorld world) : base(world) {}
 
@@ -23,28 +23,25 @@ public class MovementUpdateSystem : BaseComponentSystem
     {
         if (SceneMgr.Instance.IsLoadingScene)
             return;
-        float dt = Time.deltaTime;
-        var entities = group.ToEntityArray(Allocator.TempJob);
-        var targetPositions = group.ToComponentDataArray<TargetPosition>(Allocator.TempJob);
-        var speeds = group.ToComponentArray<SpeedData>();
-        var transforms = group.ToComponentArray<Transform>();
-        var moveQuerys = group.ToComponentArray<MoveQuery>();
-        var locoStates = group.ToComponentDataArray<LocomotionState>(Allocator.TempJob);
-        var posOffsets = group.ToComponentDataArray<PosOffset>(Allocator.TempJob);
+        float dt = SystemAPI.Time.DeltaTime;
+        var entities = group.ToEntityArray(Allocator.Temp);
+        var targetPositions = group.ToComponentDataArray<TargetPosition>(Allocator.Temp);
+        var locoStates = group.ToComponentDataArray<LocomotionState>(Allocator.Temp);
+        var posOffsets = group.ToComponentDataArray<PosOffset>(Allocator.Temp);
         for (int i=0; i<targetPositions.Length; i++)
         {
             var targetPos = targetPositions[i].Value;
-            var speed = speeds[i].CurSpeed;
+            var speed = EntityManager.GetComponentObject<SpeedData>(entities[i]).CurSpeed;
             var posOffset = posOffsets[i].Value;
             var curLocoStateObj = locoStates[i];
-            var query = moveQuerys[i];
+            var query = EntityManager.GetComponentObject<MoveQuery>(entities[i]);
             if (speed <= 0)
                 continue;
             if (curLocoStateObj.LocoState==LocomotionState.State.BeHit 
                 || curLocoStateObj.LocoState==LocomotionState.State.Dead 
                 || curLocoStateObj.LocoState==LocomotionState.State.Dizzy)
                 continue;
-            var curTrans = transforms[i];
+            var curTrans = EntityManager.GetComponentObject<Transform>(entities[i]);
             float3 startPos = curTrans.localPosition;
             var moveDir = targetPos-startPos;
             var groundDir = moveDir;
@@ -147,8 +144,8 @@ public class MovementUpdateSystem : BaseComponentSystem
                     var eulerY = curTrans.eulerAngles.y;
 
                     if (diferenceRotation < 0 || diferenceRotation > 0) eulerY = freeRotation.eulerAngles.y;
-                    var euler = new Vector3(0, eulerY, 0);
-                    curTrans.rotation = Quaternion.Slerp(curTrans.rotation, Quaternion.Euler(euler), Time.deltaTime*50);
+                var euler = new Vector3(0, eulerY, 0);
+                curTrans.rotation = Quaternion.Slerp(curTrans.rotation, Quaternion.Euler(euler), SystemAPI.Time.DeltaTime*50);
                 }
             }
         }
@@ -159,9 +156,8 @@ public class MovementUpdateSystem : BaseComponentSystem
     }
 }
 
-
 [DisableAutoCreation]
-class MovementHandleGroundCollision : BaseComponentSystem
+partial class MovementHandleGroundCollision : BaseComponentSystem
 {
     public MovementHandleGroundCollision(GameWorld world) : base(world)
     {
@@ -176,25 +172,22 @@ class MovementHandleGroundCollision : BaseComponentSystem
 
     protected override void OnUpdate()
     {
-        var entities = group.ToEntityArray(Allocator.TempJob);
-        var locoStates = group.ToComponentDataArray<LocomotionState>(Allocator.TempJob);
-        var targets = group.ToComponentDataArray<TargetPosition>(Allocator.TempJob);
-        var querys = group.ToComponentArray<MoveQuery>();
-        var transforms = group.ToComponentArray<Transform>();
+        var entities = group.ToEntityArray(Allocator.Temp);
+        var locoStates = group.ToComponentDataArray<LocomotionState>(Allocator.Temp);
+        var targets = group.ToComponentDataArray<TargetPosition>(Allocator.Temp);
         for (int i = 0; i < locoStates.Length; i++)
         {
             var locoState = locoStates[i];
             if (locoState.LocoState == LocomotionState.State.Dead)
                 continue;
-            var query = querys[i];
+            var query = EntityManager.GetComponentObject<MoveQuery>(entities[i]);
             // Check for ground change (hitting ground or leaving ground)  
             var isOnGround = locoState.IsOnGround();
-            // Debug.Log("isOnGround : "+isOnGround.ToString()+" query:"+query.isGrounded);
             if (isOnGround != query.isGrounded)
             {
                 if (query.isGrounded)
                 {
-                    Vector3 startPos = transforms[i].localPosition;
+                    Vector3 startPos = EntityManager.GetComponentObject<Transform>(entities[i]).localPosition;
                     Vector3 targetPos = targets[i].Value;
                     var groundDir = targetPos-startPos;
                     bool isMoveWanted = Vector3.Magnitude(groundDir)>0.01f;
@@ -225,7 +218,7 @@ class MovementHandleGroundCollision : BaseComponentSystem
 
 
 [DisableAutoCreation]
-public class CreateTargetPosFromUserInputSystem : BaseComponentSystem
+public partial class CreateTargetPosFromUserInputSystem : BaseComponentSystem
 {
     public CreateTargetPosFromUserInputSystem(GameWorld world) : base(world) {}
 
@@ -239,14 +232,10 @@ public class CreateTargetPosFromUserInputSystem : BaseComponentSystem
 
     protected override void OnUpdate()
     {
-        var entities = group.ToEntityArray(Allocator.TempJob);
-        var targetPosArray = group.ToComponentDataArray<TargetPosition>(Allocator.TempJob);
-        var posArray = group.ToComponentArray<Transform>();
-        var moveQuerys = group.ToComponentArray<MoveQuery>();
-        var moveSpeedArray = group.ToComponentArray<SpeedData>();
-        var locoStates = group.ToComponentDataArray<LocomotionState>(Allocator.TempJob);
+        var entities = group.ToEntityArray(Allocator.Temp);
+        var targetPosArray = group.ToComponentDataArray<TargetPosition>(Allocator.Temp);
+        var locoStates = group.ToComponentDataArray<LocomotionState>(Allocator.Temp);
         var curLocoStateObj = locoStates[0];
-        // Debug.Log("curLocoStateObj.LocoState : "+curLocoStateObj.LocoState);
         if (curLocoStateObj.LocoState!=LocomotionState.State.BeHit && curLocoStateObj.LocoState!=LocomotionState.State.Dead)
         {
             var input = GameInput.GetInstance().JoystickDir;
@@ -258,8 +247,8 @@ public class CreateTargetPosFromUserInputSystem : BaseComponentSystem
                 float3 targetDirection = input.x * right + input.y * forward;
                 targetDirection.y = 0;
                 targetDirection = Vector3.Normalize(targetDirection);
-                float3 curPos = posArray[0].localPosition;
-                var speed = moveSpeedArray[0].CurSpeed;
+                float3 curPos = EntityManager.GetComponentObject<Transform>(entities[0]).localPosition;
+                var speed = EntityManager.GetComponentObject<SpeedData>(entities[0]).CurSpeed;
                 var newTargetPos = new TargetPosition();
                 if (speed > 0)
                     newTargetPos.Value = curPos+targetDirection*(speed*0.10f);//延着方向前进0.10秒为目标坐标
@@ -270,9 +259,9 @@ public class CreateTargetPosFromUserInputSystem : BaseComponentSystem
                 // targetPosArray[0] = newTargetPos;
                 EntityManager.SetComponentData<TargetPosition>(entities[0], newTargetPos);
             }
-            else if(!moveQuerys[0].IsAutoFinding)
+            else if(!EntityManager.GetComponentObject<MoveQuery>(entities[0]).IsAutoFinding)
             {
-                var newTargetPos = new TargetPosition{Value=posArray[0].localPosition};
+                var newTargetPos = new TargetPosition{Value=EntityManager.GetComponentObject<Transform>(entities[0]).localPosition};
                 EntityManager.SetComponentData<TargetPosition>(entities[0], newTargetPos);
                 // targetPosArray[0] = newTargetPos;
             }

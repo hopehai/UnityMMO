@@ -9,6 +9,18 @@ namespace UnityMMO
     }
 
     [DisallowMultipleComponent] 
-    public class UIDProxy : ComponentDataProxy<UID> { }
+    public class UIDProxy : MonoBehaviour 
+    { 
+        public long Value;
+
+        class UIDProxyBaker : Baker<UIDProxy>
+        {
+            public override void Bake(UIDProxy authoring)
+            {
+                var entity = GetEntity(TransformUsageFlags.Dynamic);
+                AddComponent(entity, new UID { Value = authoring.Value });
+            }
+        }
+    }
 
 }

@@ -21,31 +21,31 @@ namespace Cocos
             return true;
         }
 
-        public virtual void StartWithTarget(Transform target)
+        public override void StartWithTarget(Transform target)
         {
             this.target = target;
             this.originalTarget = target;
         }
 
-        public virtual void Update(float progress)
+        public override void Update(float progress)
         {
         }
 
-        public virtual void Stop()
+        public override void Stop()
         {
         }
 
-        public virtual bool IsDone()
+        public override bool IsDone()
         {
             return true;
         }
 
-        public virtual Action Clone()
+        public override Action Clone()
         {
             return null;
         }
 
-        public virtual Action Reverse()
+        public override Action Reverse()
         {
             return null;
         }

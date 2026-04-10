@@ -58,7 +58,7 @@ public struct EntityGroupChildren : IBufferElementData
 }
 
 [DisableAutoCreation]
-public class DestroyDespawning : ComponentSystem
+public partial class DestroyDespawning : SystemBase
 {
     EntityQuery Group;
 
@@ -70,12 +70,8 @@ public class DestroyDespawning : ComponentSystem
     
     protected override void OnUpdate()
     {
-        var entityArray = Group.ToEntityArray(Allocator.TempJob);
-        for (var i = 0; i < entityArray.Length; i++)
-        {
-            PostUpdateCommands.DestroyEntity(entityArray[i]);
-        }
-        entityArray.Dispose();
+        // Destroy all entities tagged for despawning this frame
+        EntityManager.DestroyEntity(Group);
     }
 }
 
@@ -114,17 +110,16 @@ public class GameWorld
 
 // #if UNITY_EDITOR
         // When running in editor the world could be created, so we silently keep it.
-        m_ECSWorld = World.Active != null ? World.Active : new World(name); 
+        m_ECSWorld = new World(name);
 // #else
 //         GameDebug.Assert(World.Active == null);
 //         m_ECSWorld = new World(name);
 // #endif        
         
 
-        World.Active = m_ECSWorld;
         m_EntityManager = m_ECSWorld.EntityManager;
 
-        GameDebug.Assert(m_EntityManager.IsCreated);
+        GameDebug.Assert(m_EntityManager != null);
 
         // worldTime.tickRate = 60;
 
@@ -132,7 +127,7 @@ public class GameWorld
 
         s_Worlds.Add(this);
 
-        m_destroyDespawningSystem = m_ECSWorld.CreateSystem<DestroyDespawning>();
+        m_destroyDespawningSystem = m_ECSWorld.GetOrCreateSystemManaged<DestroyDespawning>();
     }
 
     public void Shutdown()
@@ -157,11 +152,10 @@ public class GameWorld
 
         s_Worlds.Remove(this);
 
-        if (m_ECSWorld.IsCreated)
+        if (m_ECSWorld != null && m_ECSWorld.IsCreated)
         {
             m_ECSWorld.Dispose();
             m_ECSWorld = null;
-            World.Active = null;
         }
 
         GameObject.Destroy(m_sceneRoot);
@@ -353,8 +347,11 @@ public class GameWorld
     {
         // If gameObject has GameObjectEntity it is already registered in entitymanager. If not we register it here  
         var gameObjectEntity = gameObject.GetComponent<GameObjectEntity>();
-        if(gameObjectEntity == null)
+        if (gameObjectEntity == null)
+        {
             GameObjectEntity.AddToEntityManager(m_EntityManager, gameObject);
+            gameObjectEntity = gameObject.GetComponent<GameObjectEntity>();
+        }
         
         if (isDynamic)
             m_dynamicEntities.Add(gameObject);

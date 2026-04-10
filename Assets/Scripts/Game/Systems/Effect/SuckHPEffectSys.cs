@@ -22,7 +22,7 @@ namespace UnityMMO
     }
 
     [DisableAutoCreation]
-    class SuckHPEffectSys : BaseComponentSystem
+    partial class SuckHPEffectSys : BaseComponentSystem
     {
         EntityQuery group;
         
@@ -36,13 +36,14 @@ namespace UnityMMO
 
         protected override void OnUpdate()
         {
-            var effects = group.ToComponentArray<SuckHPEffect>();
+            var entityArray = group.ToEntityArray(Allocator.TempJob);
             var looksInfos = group.ToComponentDataArray<LooksInfo>(Allocator.TempJob);
-            for (var i = 0; i < effects.Length; i++)
+            for (var i = 0; i < entityArray.Length; i++)
             {
-                HandleEffect(effects[i], looksInfos[i]);
+                HandleEffect(EntityManager.GetComponentObject<SuckHPEffect>(entityArray[i]), looksInfos[i]);
             }
             looksInfos.Dispose();
+            entityArray.Dispose();
         }
 
         void HandleEffect(SuckHPEffect effect, LooksInfo looks)

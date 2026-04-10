@@ -8,7 +8,7 @@ using XLuaFramework;
 namespace UnityMMO
 {
     [DisableAutoCreation]
-    class EffectHarmonizeSys : BaseComponentSystem
+    partial class EffectHarmonizeSys : BaseComponentSystem
     {
         EntityQuery suckHPAndHitGroup;
         
@@ -22,12 +22,14 @@ namespace UnityMMO
 
         protected override void OnUpdate()
         {
-            var suckHPs = suckHPAndHitGroup.ToComponentArray<SuckHPEffect>();
-            var beHits = suckHPAndHitGroup.ToComponentArray<BeHitEffect>();
-            for (var i = 0; i < suckHPs.Length; i++)
+            var entityArray = suckHPAndHitGroup.ToEntityArray(Allocator.TempJob);
+            for (var i = 0; i < entityArray.Length; i++)
             {
-                HandleSuckHPAndHit(suckHPs[i], beHits[i]);
+                HandleSuckHPAndHit(
+                    EntityManager.GetComponentObject<SuckHPEffect>(entityArray[i]),
+                    EntityManager.GetComponentObject<BeHitEffect>(entityArray[i]));
             }
+            entityArray.Dispose();
         }
 
         void HandleSuckHPAndHit(SuckHPEffect suckHP, BeHitEffect beHit)

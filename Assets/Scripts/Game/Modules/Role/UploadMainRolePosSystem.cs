@@ -8,7 +8,7 @@ using Unity.Collections;
 using UnityMMO.Component;
 
 [DisableAutoCreation]
-public class UploadMainRolePosSystem : BaseComponentSystem
+public partial class UploadMainRolePosSystem : BaseComponentSystem
 {
     float lastSynchTime = 0;
     EntityQuery group;
@@ -22,17 +22,16 @@ public class UploadMainRolePosSystem : BaseComponentSystem
 
     protected override void OnUpdate()
     {
-        if (Time.time - lastSynchTime < 0.05 || !GameVariable.IsNeedSynchSceneInfo)
+        if (SystemAPI.Time.ElapsedTime - lastSynchTime < 0.05 || !GameVariable.IsNeedSynchSceneInfo)
             return;
-        var positions = group.ToComponentArray<Transform>();
-        var targetPositions = group.ToComponentDataArray<TargetPosition>(Allocator.TempJob);
-        var synchInfos = group.ToComponentDataArray<PosSynchInfo>(Allocator.TempJob);
-        var entities = group.ToEntityArray(Allocator.TempJob);
+        var targetPositions = group.ToComponentDataArray<TargetPosition>(Allocator.Temp);
+        var synchInfos = group.ToComponentDataArray<PosSynchInfo>(Allocator.Temp);
+        var entities = group.ToEntityArray(Allocator.Temp);
         long synchTime = System.DateTime.Now.Millisecond;
         for (int i=0; i<targetPositions.Length; i++)
         {
             var targetPos = targetPositions[i].Value;
-            var pos = positions[i].localPosition;
+            var pos = EntityManager.GetComponentObject<Transform>(entities[i]).localPosition;
             var synchInfo = synchInfos[i];
             var distance = Vector3.Distance(targetPos, pos);
             var distance_with_last = Vector3.Distance(synchInfo.LastUploadPos, targetPos);
@@ -52,7 +51,7 @@ public class UploadMainRolePosSystem : BaseComponentSystem
             walk.time = synchTime;
             walk.jump_state = 0;
             NetMsgDispatcher.GetInstance().SendMessage<Protocol.scene_walk>(walk);
-            lastSynchTime = Time.time;
+            lastSynchTime = (float)SystemAPI.Time.ElapsedTime;
         }
         entities.Dispose();
         targetPositions.Dispose();

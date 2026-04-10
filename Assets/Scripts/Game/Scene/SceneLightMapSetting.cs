@@ -55,13 +55,13 @@ public class SceneLightMapSetting : MonoBehaviour {
     void OnEnable()
     {
 #if UNITY_EDITOR
-        UnityEditor.Lightmapping.completed += SaveSettings;
+        UnityEditor.Lightmapping.bakeCompleted += SaveSettings;
 #endif
     }
     void OnDisable()
     {
 #if UNITY_EDITOR
-        UnityEditor.Lightmapping.completed -= SaveSettings;
+        UnityEditor.Lightmapping.bakeCompleted -= SaveSettings;
 #endif
     }
  
